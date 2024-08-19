@@ -1,0 +1,6 @@
+config.h
+**/*.swp
+**/*~
+**/*.o
+**/*.core
+sis

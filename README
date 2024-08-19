@@ -1,0 +1,33 @@
+sis - simple imap server
+============================
+sis is an IMAP server, following the unix philosophy,
+trying to be as small as possible while providing
+a reliable service.
+
+
+Requirements
+------------
+In order to build sis you need... a computer
+
+
+Installation
+------------
+Edit config.mk to match your local setup (sis is installed into
+the /usr/local namespace by default).
+
+Afterwards enter the following command to build and install sis (if
+necessary as root):
+
+    make clean install
+
+
+Running sis
+-----------
+By default, sis runs in daemon mode, if you want to avoid detaching use the -d option
+    sis -d
+
+
+Configuration
+-------------
+The configuration of sis is done by creating a custom config.h
+and (re)compiling the source code.
