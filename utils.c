@@ -25,45 +25,35 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <signal.h>
-#include <syslog.h>
-#include <imap.h>
+#include <ctype.h>
+#include <string.h>
+#include <utils.h>
 
-static imap_t *instance;
-
-void int_handler(int sig)
+void strstrip(char *str)
 {
-    if (instance != NULL) {
-        imap_close(instance);
+    int i, x;
+    for (i=x=0; str[i]; ++i) {
+        if (!isspace(str[i]) || (i > 0 && !isspace(str[i-1]))) {
+            str[x++] = str[i];
+        }
+        if (str[i] == '\t') {
+            str[i] = ' ';
+        }
+        if (str[i+1] == '\0' && isspace(str[i])) {
+            str[i] = '\0';
+        }
     }
+    str[x] = '\0';
 }
 
-int main(void)
+void strlower(char* str)
 {
-    signal(SIGINT, int_handler);
-    signal(SIGPIPE, SIG_IGN);
+    strnlower(str, strlen(str));
+}
 
-    openlog("sis", LOG_PID, LOG_MAIL);
-    syslog(LOG_INFO, "Starting sis %s.", VERSION);
-
-    int status = 0;
-    instance = (imap_t *) malloc(sizeof(imap_t));    
-
-    if ((status = imap_init(0, instance)) != 0) {
-        perror("imap_init");
-        goto ret;
+void strnlower(char *str, size_t len)
+{
+    for (int i=0; i < len; i++) {
+        str[i] = tolower(str[i]);
     }
-
-    imap_start(instance);
-
-ret:
-    if (instance != NULL) {
-        imap_close(instance);
-    }
-
-    closelog();
-    return status;
 }

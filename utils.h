@@ -25,45 +25,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <signal.h>
-#include <syslog.h>
-#include <imap.h>
+#ifndef UTILS_H
+#define UTILS_H
 
-static imap_t *instance;
+void strstrip(char* str);
+void strlower(char* str);
+void strnlower(char *str, size_t len);
 
-void int_handler(int sig)
-{
-    if (instance != NULL) {
-        imap_close(instance);
-    }
-}
-
-int main(void)
-{
-    signal(SIGINT, int_handler);
-    signal(SIGPIPE, SIG_IGN);
-
-    openlog("sis", LOG_PID, LOG_MAIL);
-    syslog(LOG_INFO, "Starting sis %s.", VERSION);
-
-    int status = 0;
-    instance = (imap_t *) malloc(sizeof(imap_t));    
-
-    if ((status = imap_init(0, instance)) != 0) {
-        perror("imap_init");
-        goto ret;
-    }
-
-    imap_start(instance);
-
-ret:
-    if (instance != NULL) {
-        imap_close(instance);
-    }
-
-    closelog();
-    return status;
-}
+#endif /* ifndef UTILS_H */

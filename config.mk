@@ -12,11 +12,11 @@ MANPREFIX = ${PREFIX}/share/man
 
 # includes and libs
 INCS = -I.
-LIBS =
+LIBS = -lssl -lcrypto
 # flags
 CPPFLAGS = -DVERSION=\"${VERSION}\" 
-CFLAGS   = -g -std=c99 -pedantic -Wall -O0 ${INCS} ${CPPFLAGS}
-#CFLAGS   = -std=c99 -pedantic -Wall -Wno-deprecated-declarations -Os ${INCS} ${CPPFLAGS}
+CFLAGS  := -std=c99 -pedantic -Wall -O0 -Wno-gnu-label-as-value -Wno-gnu-zero-variadic-macro-arguments ${INCS} ${CPPFLAGS} 
+CFLAGS  := ${CFLAGS} -g
 LDFLAGS  = ${LIBS}
 
 # Solaris

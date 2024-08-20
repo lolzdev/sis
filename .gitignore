@@ -3,4 +3,6 @@ config.h
 **/*~
 **/*.o
 **/*.core
+**/*.pem
+vgcore*
 sis
