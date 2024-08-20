@@ -94,5 +94,6 @@ void imap_flush(client_list *node, uint8_t ssl);
 uint8_t imap_cmd_exec(imap_cmd cmd, client_list *node, uint8_t ssl, uint8_t state);
 void imap_trie_populate(void);
 void imap_trie_encode(char *str, uint8_t cmd);
+void imap_trie_free(trie_node *node);
 
 #endif /* ifndef IMAP_H */

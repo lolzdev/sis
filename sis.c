@@ -39,6 +39,8 @@ void int_handler(int sig)
     if (instance != NULL) {
         imap_close(instance);
     }
+
+    exit(0);
 }
 
 int main(void)

@@ -74,6 +74,20 @@ void imap_populate_trie(void)
 
 #define CMD_MAP_LAST 0x5
 
+void imap_trie_free(trie_node *node)
+{
+    trie_node *tmp = NULL;
+    
+    for (int i=0; i < 26; i++) {
+        tmp = node->children[i];
+        if (tmp != NULL) {
+            imap_trie_free(tmp);
+        }
+    }
+
+    free(node);
+}
+
 uint8_t imap_init(uint8_t daemon, imap_t *instance)
 {
     imap_populate_trie();
@@ -316,14 +330,21 @@ void imap_close(imap_t *instance)
     client_list *node = instance->clients;
     client_list *tmp = node;
     while (node != NULL) {
+        if (instance->ssl) {
+            SSL_shutdown(node->ssl);
+            SSL_free(node->ssl);
+        }
         close(node->socket);
         tmp = node->next;
         free(node);
         node = tmp;
     }
 
+    imap_trie_free(trie);
     close(instance->socket);
-    SSL_CTX_free(instance->ssl_ctx);
+    if (instance->ssl) {
+        SSL_CTX_free(instance->ssl_ctx);
+    }
     free(instance);
 }
 
