@@ -38,30 +38,46 @@
 #include <utils.h>
 #include <imap.h>
 
-struct {
-    char *key;
-    uint8_t id;
-} cmd_map[] = {
-    /* https://datatracker.ietf.org/doc/html/rfc3501#section-6.1.1 */
-    { "capability", 0x00 },
-    /* https://datatracker.ietf.org/doc/html/rfc3501#section-6.1.2 */
-    { "noop", 0x01 },
-    /* https://datatracker.ietf.org/doc/html/rfc3501#section-6.1.3 */
-    { "logout", 0x02 },
-    /* https://datatracker.ietf.org/doc/html/rfc3501#section-6.2.1 */
-    { "starttls", 0x03 },
-    /* https://datatracker.ietf.org/doc/html/rfc3501#section-6.2.2 */
-    { "authenticate", 0x04 },
-    /* https://datatracker.ietf.org/doc/html/rfc3501#section-6.2.3 */
-    { "login", 0x05 },
-    /* Invalid command */
-    { NULL,         0xff }
-};
+static char buf[CMD_MAX_SIZE];
+static trie_node *trie;
 
-#define CMD_MAP_LAST 0x05
+void imap_trie_encode(char *str, uint8_t cmd)
+{
+    trie_node *node;
+    if (trie == NULL) {
+        trie = (trie_node *) malloc(sizeof(trie_node));
+        memset(trie, 0x0, sizeof(trie_node));
+    }
+
+    node = trie;
+    do {
+        node->children[*(str) - 'a'] = (trie_node *) malloc(sizeof(trie_node));
+        node = node->children[*(str) - 'a'];
+        memset(node, 0x0, sizeof(trie_node));
+        node->id = 0xff;
+        str++;
+    } while (*str != '\0');
+
+    node->id = cmd;
+    printf("%d\n", node->id);
+}
+
+void imap_populate_trie(void)
+{
+    imap_trie_encode("capability", 0x0);
+    imap_trie_encode("noop", 0x1);
+    imap_trie_encode("logout", 0x2);
+    imap_trie_encode("starttls", 0x3);
+    imap_trie_encode("authenticate", 0x4);
+    imap_trie_encode("login", 0x5);
+}
+
+#define CMD_MAP_LAST 0x5
 
 uint8_t imap_init(uint8_t daemon, imap_t *instance)
 {
+    imap_populate_trie();
+
     imap_t imap;
     imap.ssl_ctx = NULL;
     imap.ssl = 0;
@@ -108,7 +124,7 @@ uint8_t imap_init(uint8_t daemon, imap_t *instance)
 
     if (TLS_ENABLED) {
         imap_create_ssl_ctx(&imap);
-        imap_starttls(&imap, imap.clients);
+        imap_starttls(&imap, NULL);
     }
 
     memcpy(instance, &imap, sizeof(imap));
@@ -212,7 +228,6 @@ void imap_start(imap_t *instance)
 {
     int activity, max_fd, connection;
     size_t bytes_read;
-    char buf[CMD_MAX_SIZE];
     /* List of all the file descriptors (sockets) being used. */
     fd_set fds;
     instance->clients = NULL;
@@ -316,11 +331,18 @@ uint8_t imap_match_cmd(char *cmd, size_t len)
 {
     strnlower(cmd, len);
 
-    for (int i=0; cmd_map[i].key != NULL; i++) {
-        if (strncmp(cmd_map[i].key, cmd, len) == 0) {
-            return cmd_map[i].id;
+    trie_node *node = trie;
+    do {
+        node = node->children[*cmd - 'a'];
+        if (node->id == 0xff) {
+            cmd++;
+            continue;
+        } else {
+            return node->id;
         }
-    }
+
+        cmd++;
+    } while (*cmd != '\0');
 
     return 0xff;
 }
@@ -423,12 +445,12 @@ void imap_create_ssl_ctx(imap_t *imap)
     }
 }
 
-int imap_read(client_list *node, char *buf, size_t len, uint8_t ssl)
+int imap_read(client_list *node, char *buffer, size_t len, uint8_t ssl)
 {
     if (ssl) {
-        return SSL_read(node->ssl, buf, len);
+        return SSL_read(node->ssl, buffer, len);
     } else {
-        return read(node->socket, buf, len);
+        return read(node->socket, buffer, len);
     }
 }
 
@@ -436,7 +458,6 @@ void imap_write(client_list *node, uint8_t ssl, char *fmt, ...)
 {
     va_list(args);
     va_start(args, fmt);
-    char buf[CMD_MAX_SIZE];
     vsprintf(buf, fmt, args);
 
     if (!ssl) {

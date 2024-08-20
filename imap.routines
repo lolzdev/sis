@@ -4,14 +4,18 @@
 name: { \
     return imap_routine_##name(cmd, node, ssl, state); \
 }
-
+#define IMAP_ROUTINE_BAD_TAG \
+    imap_write(node, ssl, "%s BAD\n", cmd.tag);
+#define IMAP_ROUTINE_BAD \
+    imap_write(node, ssl, "* BAD\n");
+#define IMAP_CHECK_ARGS(x) \
+    if (cmd.p_count != x) { \
+        IMAP_ROUTINE_BAD_TAG \
+        return IMAP_FAIL; \
+    }
 #define IMAP_ROUTINE_END imap_flush(node, ssl);
 #define IMAP_ROUTINE_OK(routine) \
     imap_write(node, ssl, "%s OK " #routine " completed\n", cmd.tag);
-#define IMAP_ROUTINE_BAD_TAG \
-    imap_write(node, ssl, "%s BAD", cmd.tag);
-#define IMAP_ROUTINE_BAD \
-    imap_write(node, ssl, "* BAD");
 #define IMAP_STRING(fmt, ...) \
     imap_write(node, ssl, fmt, ##__VA_ARGS__);
 #define IMAP_NLINE imap_write(node, ssl, "\n");
@@ -68,6 +72,27 @@ static inline uint8_t imap_routine_starttls(imap_cmd cmd, client_list *node, uin
 
 static inline uint8_t imap_routine_auth(imap_cmd cmd, client_list *node, uint8_t ssl, uint8_t state)
 {
+    IMAP_CHECK_STATE(NO_AUTH)
+    IMAP_CHECK_ARGS(1)
+
+    int bytes;
+
+    if (strcmp(cmd.params[0], "PLAIN") == 0) {
+        IMAP_STRING("+\n");
+        if ((bytes = imap_read(node, buf, CMD_MAX_SIZE, ssl)) < 0) {
+            perror("recv");
+            syslog(LOG_ERR, "Failed to receive data.");
+        } else if (bytes == 0) {
+            return IMAP_LOGOUT;
+        } else {
+            buf[bytes] = '\0';
+            printf("%s\n", buf);
+        }
+    } else {
+        IMAP_ROUTINE_BAD_TAG
+    }
+
+    IMAP_ROUTINE_END
     return IMAP_SUCCESS;
 }
 

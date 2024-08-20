@@ -51,6 +51,10 @@ typedef struct _client_list {
     struct _client_list *prev;
 } client_list;
 
+typedef struct _trie_node {
+    struct _trie_node *children[26];
+    uint8_t id;
+} trie_node;
 
 typedef struct imap {
     int32_t socket;
@@ -88,5 +92,7 @@ int imap_read(client_list *node, char *buf, size_t len, uint8_t ssl);
 void imap_write(client_list *node, uint8_t ssl, char *fmt, ...);
 void imap_flush(client_list *node, uint8_t ssl);
 uint8_t imap_cmd_exec(imap_cmd cmd, client_list *node, uint8_t ssl, uint8_t state);
+void imap_trie_populate(void);
+void imap_trie_encode(char *str, uint8_t cmd);
 
 #endif /* ifndef IMAP_H */
