@@ -15,7 +15,7 @@ INCS = -I.
 LIBS = -lssl -lcrypto
 # flags
 CPPFLAGS = -DVERSION=\"${VERSION}\" 
-CFLAGS  := -std=c99 -pedantic -Wall -O0 -Wno-gnu-label-as-value -Wno-gnu-zero-variadic-macro-arguments ${INCS} ${CPPFLAGS} 
+CFLAGS  := -std=gnu99 -pedantic -Wall -O0 -Wno-gnu-label-as-value -Wno-gnu-zero-variadic-macro-arguments ${INCS} ${CPPFLAGS} 
 CFLAGS  := ${CFLAGS} -g
 LDFLAGS  = ${LIBS}
 

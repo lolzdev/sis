@@ -35,6 +35,7 @@
 #include <syslog.h>
 #include <errno.h>
 #include <config.h>
+#include <ctype.h>
 #include <utils.h>
 #include <imap.h>
 
@@ -370,10 +371,11 @@ uint8_t imap_match_cmd(char *cmd, size_t len)
 
 imap_cmd imap_parse_cmd(char *s)
 {
+    char *cpy;
     imap_cmd cmd;
     strstrip(s);
     size_t params = 0, id_len = 0, i = 0;
-    char *cpy;
+
     printf("%s\n", s);
 
     cmd.params = NULL;    
@@ -393,6 +395,9 @@ imap_cmd imap_parse_cmd(char *s)
 
     id_len -= 1;
     s -= id_len+1;
+
+    cpy = s;
+    for (; (cpy-s) <= id_len; ++cpy) *cpy = tolower(*cpy);
     cmd.id = imap_match_cmd(s, id_len);
     s += id_len+2;
 

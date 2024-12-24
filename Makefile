@@ -3,8 +3,8 @@
 
 include config.mk
 
-SRC = sis.c imap.c utils.c
-HDR = config.def.h imap.h utils.h imap.routines
+SRC = sis.c imap.c auth.c utils.c
+HDR = config.def.h imap.h auth.h utils.h imap.routines
 OBJ = ${SRC:.c=.o}
 
 all: options sis

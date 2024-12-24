@@ -21,6 +21,11 @@
  * modify this.
  */
 #define CMD_MAX_SIZE    8000
+/*-
+ * Use pam (Pluggable Authentication Modules)
+ * as an authentication method
+ */
+#define AUTH_PAM
 
 static char *imap_capabilities[] = {
     "IMAP4rev1",
