@@ -38,6 +38,7 @@
 #include <ctype.h>
 #include <utils.h>
 #include <imap.h>
+#include <auth.h>
 
 static char buf[CMD_MAX_SIZE];
 static trie_node *trie;
@@ -405,6 +406,8 @@ imap_cmd imap_parse_cmd(char *s)
     cpy = (char *) calloc(strlen(s), sizeof(char));
     strcpy(cpy, s);
     for (tok = strtok(cpy, " "); tok; tok = strtok(NULL, " ")) {
+        
+
         params++;
     }
 
@@ -413,7 +416,15 @@ imap_cmd imap_parse_cmd(char *s)
     if (params > 0) {
         cmd.params = (char **) calloc(params, sizeof(char **));
         for (tok = strtok(s, " "); tok; tok = strtok(NULL, " ")) {
+
             cmd.params[i] = tok;
+
+            for (size_t j=0; cmd.params[i][j] != '\0'; j++) {
+                if (cmd.params[i][j] == '\r' || cmd.params[i][j] == '\n' || tok[i] == '\t') {
+                    cmd.params[i][j] = '\0';
+                    break;
+            }
+        }
             i++;
         }
         cmd.p_count = params;
@@ -422,6 +433,7 @@ imap_cmd imap_parse_cmd(char *s)
     return cmd;
 }
 
+#include <users.h>
 #include <imap.routines>
 
 uint8_t imap_cmd_exec(imap_cmd cmd, client_list *node, uint8_t ssl, uint8_t state)

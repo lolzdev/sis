@@ -25,13 +25,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef AUTH_PAM
+#include <openssl/sha.h>
+#include <auth.h>
 
-int pam_conv_func(int num_msg, const struct pam_message **msg, struct pam_response **resp, void *appdata_ptr) {
+void auth_sha256(char *string, char buffer[65]) {
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
+    SHA256_Update(&sha256, string, strlen(string));
+    SHA256_Final(hash, &sha256);
+    int i = 0;
+    for(i = 0; i < SHA256_DIGEST_LENGTH; i++) {
+        sprintf(buffer + (i * 2), "%02x", hash[i]);
+    }
+    buffer[64] = '\0';
 }
-
-uint8_t auth_pam(char *username, char *password)
-{
-}
-
-#endif

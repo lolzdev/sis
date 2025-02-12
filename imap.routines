@@ -102,10 +102,21 @@ static inline uint8_t imap_routine_login(imap_cmd cmd, client_list *node, uint8_
 {
     IMAP_CHECK_STATE(NO_AUTH)
     IMAP_CHECK_ARGS(2)
+    size_t users = sizeof(imap_users)/sizeof(struct user);
+    uint8_t found = 0;
 
-    if ((strcmp(cmd.params[0], "lorenzo") == 0) && (strcmp(cmd.params[1], "lorenzo06") == 0)) {
-        IMAP_ROUTINE_OK(LOGIN)
-    } else {
+    for (size_t i=0; i < users; i++) {
+        if (strcmp(cmd.params[0], imap_users[i].username) == 0) {
+            char hash[65];
+            auth_sha256(cmd.params[1], hash);
+            if (strcmp(hash, imap_users[i].password) == 0) {
+                IMAP_ROUTINE_OK(LOGIN)
+                found = 1;
+            }
+        }
+    }
+    
+    if (!found) {
         IMAP_ROUTINE_NO(LOGIN)
     }
     

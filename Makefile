@@ -18,10 +18,13 @@ options:
 .c.o:
 	${CC} -c ${CFLAGS} $<
 
-${OBJ}: config.h imap.routines config.mk
+${OBJ}: config.h users.h imap.routines config.mk
 
 config.h:
 	cp config.def.h $@
+
+users.h:
+	cp users.def.h $@
 
 sis: ${OBJ}
 	${CC} -o $@ ${OBJ} ${LDFLAGS}

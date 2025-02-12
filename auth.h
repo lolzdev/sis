@@ -28,16 +28,14 @@
 #ifndef AUTH_H
 #define AUTH_H
 
+struct user {
+    char *username;
+    char *password;
+} __attribute__((packed));
+
 #define AUTH_OK     0x1
 #define AUTH_FAIL   0x1 << 1
 
-#ifdef AUTH_PAM
-#include <security/pam_appl.h>
-#include <security/pam_modules.h>
-#include <security/pam_ext.h>
-
-uint8_t auth_pam(char *username, char *password);
-
-#endif
+void auth_sha256(char *string, char buffer[65]);
 
 #endif
